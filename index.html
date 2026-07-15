@@ -236,32 +236,32 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .lib-card-del{top:6px;right:6px;font-size:14px;}
 
   /* ── 阅读器: 全屏正文, 隐藏桌面栏 ── */
+  html,body{overflow-x:hidden;}
   #page-reader .rainbow-bar{display:none;}
   .reader-header{display:none;}
   .chapter-sidebar{display:none;}
   .emotion-panel{display:none;}
   .heat-bar-wrap{display:none;}
-  .content-body{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+  .reader-body,#page-reader{width:100%;max-width:100vw;overflow-x:hidden;overflow-y:hidden;}
+  .content-area{min-width:0;width:100%;max-width:100%;overflow-x:hidden;}
+  .content-body{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
   .content-body::-webkit-scrollbar{display:none;}
-  .content-inner{padding:64px 18px 80px;word-break:break-word;}
-  .novel-para{font-size:16px;line-height:1.85;margin-bottom:20px;padding:0;margin-left:0;overflow-wrap:break-word;hyphens:auto;}
+  .content-inner{padding:64px 18px 80px;word-break:break-word;max-width:100%;box-sizing:border-box;}
+  .novel-para{font-size:16px;line-height:1.85;margin-bottom:20px;padding:0;margin-left:0;overflow-wrap:break-word;word-break:break-word;hyphens:auto;max-width:100%;}
   .chapter-heading{margin-bottom:20px;}
-  .ch-heading-text{font-size:14px;}
-  .chapter-section{margin-bottom:40px;}
+  .ch-heading-text{font-size:14px;max-width:100%;}
+  .chapter-section{margin-bottom:40px;max-width:100%;}
   .ch-accent-bar{height:18px;}
-  /* Ensure content fits viewport */
-  .reader-body,#page-reader{width:100vw;overflow:hidden;}
-  .content-area{min-width:0;width:100%;}
 
   /* ── 移动端浮动菜单栏 ── */
   .mobile-top-bar,.mobile-bottom-bar{
     position:fixed;left:0;right:0;z-index:1000;
     background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
-    transition:transform .25s,opacity .25s;
+    transition:opacity .2s;
   }
-  .mobile-hidden{transform:translateY(-100%);opacity:0;pointer-events:none;}
-  .mobile-bottom-hidden{transform:translateY(100%);opacity:0;pointer-events:none;}
+  .mobile-hidden{opacity:0;pointer-events:none;}
+  .mobile-bottom-hidden{opacity:0;pointer-events:none;}
   .mobile-top-bar{
     top:0;height:48px;display:flex;align-items:center;padding:0 16px;
     border-bottom:1px solid #eeece8;
