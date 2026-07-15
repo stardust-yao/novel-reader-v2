@@ -273,6 +273,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .mobile-back-btn{font-size:18px;color:#333;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;transition:opacity .15s;}
   .mobile-back-btn:active{opacity:.5;}
   .mobile-bottom-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;color:#666;font-size:10px;padding:4px 12px;}
+  .mobile-bottom-btn.active{color:#111;}
   .mobile-bottom-btn svg{width:20px;height:20px;}
   .mobile-bottom-btn:active{color:#333;transform:scale(.92);}
 
@@ -459,6 +460,7 @@ function checkPasskey(){
 <!-- 阅读页: 顶部返回栏 -->
 <div class="mobile-top-bar mobile-hidden" id="mobile-top-bar">
   <button class="mobile-back-btn" onclick="switchPage('library')">←</button>
+  <span id="mobile-bar-title" style="font-size:14px;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
 </div>
 <!-- 阅读页: 底部工具栏 -->
 <div class="mobile-bottom-bar mobile-bottom-hidden" id="mobile-bottom-bar">
@@ -1368,6 +1370,8 @@ function hexA(h, a) {
 function renderReader() {
   if (!currentNovel) return;
   document.getElementById('reader-title-text').textContent = currentNovel.title;
+  var mt = document.getElementById('mobile-bar-title');
+  if (mt) mt.textContent = currentNovel.title;
   renderSidebar();
   renderContent();
   // Measure actual DOM scroll positions for heat pills and scroll sync.
@@ -1710,6 +1714,17 @@ function togglePanel() {
     }
   };
   window.openMobileSheet = function(type) {
+    // Close other sheet first
+    var other = type === 'toc' ? 'emotions' : 'toc';
+    var otherSheet = document.getElementById(other === 'toc' ? 'mobile-toc-sheet' : 'mobile-ep-sheet');
+    if (otherSheet.classList.contains('open')) { otherSheet.classList.remove('open'); }
+    // Highlight active button, dim other
+    document.querySelectorAll('.mobile-bottom-btn').forEach(function(b){ b.classList.remove('active'); });
+    var btn = document.querySelector('.mobile-bottom-btn[onclick*=\"' + type + '\"]');
+    if (btn) btn.classList.add('active');
+    // Hide top bar, show sheet
+    document.getElementById('mobile-top-bar').classList.add('mobile-hidden');
+    document.getElementById('mobile-bottom-bar').classList.remove('mobile-bottom-hidden');
     if (type === 'toc') {
       renderMobileTOC();
       document.getElementById('mobile-toc-sheet').classList.add('open');
@@ -1720,6 +1735,7 @@ function togglePanel() {
   };
   window.closeMobileSheet = function(type) {
     document.getElementById(type === 'toc' ? 'mobile-toc-sheet' : 'mobile-ep-sheet').classList.remove('open');
+    document.querySelectorAll('.mobile-bottom-btn').forEach(function(b){ b.classList.remove('active'); });
   };
   function renderMobileTOC() {
     var el = document.getElementById('mobile-toc-body');
