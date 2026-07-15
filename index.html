@@ -274,7 +274,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .mobile-back-btn:active{opacity:.5;}
   .mobile-bottom-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;color:#666;font-size:10px;padding:4px 12px;}
   .mobile-bottom-btn.active{color:#111;}
-  .mobile-bottom-btn svg{width:20px;height:20px;}
+  .mobile-bottom-btn.active .mb-icon{color:#e84040;}
+  .mobile-bottom-btn.active .mb-heart{fill:#e84040;stroke:#e84040;color:#e84040;}
+  .mb-icon{width:20px;height:20px;}
+  .mb-heart{fill:none;}
   .mobile-bottom-btn:active{color:#333;transform:scale(.92);}
 
   /* ── 移动端底部全屏滑出面板 ── */
@@ -465,11 +468,11 @@ function checkPasskey(){
 <!-- 阅读页: 底部工具栏 -->
 <div class="mobile-bottom-bar mobile-bottom-hidden" id="mobile-bottom-bar">
   <button class="mobile-bottom-btn" onclick="openMobileSheet('toc')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <svg class="mb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     目录
   </button>
   <button class="mobile-bottom-btn" onclick="openMobileSheet('emotions')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <svg class="mb-icon mb-heart" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     🚗
   </button>
 </div>
