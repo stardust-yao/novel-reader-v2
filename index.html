@@ -24,7 +24,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
 .scroll-hidden:hover::-webkit-scrollbar{display:block;}
 
 /* ═══ 页面系统 ═══ */
-.page{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+.page{display:none;height:100vh;height:-webkit-fill-available;height:100dvh;flex-direction:column;overflow:hidden;}
 .page.active{display:flex;}
 
 /* ═══ 彩虹条 ═══ */
@@ -255,7 +255,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
 
   /* ── 移动端浮动菜单栏 ── */
   .mobile-top-bar,.mobile-bottom-bar{
-    position:fixed;left:0;right:0;z-index:100;
+    position:fixed;left:0;right:0;z-index:1000;
     background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
     transition:transform .25s,opacity .25s;
@@ -315,7 +315,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
 <body>
 
 <!-- ═══ 通行指令 ═══ -->
-<div id="passgate" style="position:fixed;inset:0;z-index:9999;background:#faf9f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:system-ui,sans-serif;">
+<div id="passgate" style="position:fixed;inset:0;z-index:10000;background:#faf9f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:system-ui,sans-serif;">
   <svg width="48" height="48" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#141414"/><text x="16" y="21" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="800" fill="#f4efe4">B</text></svg>
   <div style="position:relative;display:flex;align-items:center;gap:8px;">
     <input id="passkey-input" type="text" placeholder="输入通行指令…" style="width:200px;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:15px;outline:none;text-align:center;background:#fff;ime-mode:active;" onkeydown="if(event.key==='Enter')checkPasskey()" autocomplete="off">
