@@ -229,7 +229,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .lib-card-author{font-size:10px;margin-top:-4px;}
   .lib-card-rec{font-size:10px;-webkit-line-clamp:2;}
   .lib-card-footer{padding-top:6px;}
-  .lib-card-read{padding:4px 10px;font-size:10px;border-radius:6px;}
+  .lib-card-footer{padding-top:6px;flex-wrap:wrap;gap:6px;}
+  .lib-card-read{padding:4px 10px;font-size:10px;border-radius:6px;width:100%;text-align:center;}
+  .lib-card-meta{font-size:10px;}
+  .lib-badge{font-size:10px;}
   .lib-card-del{top:6px;right:6px;font-size:14px;}
 
   /* ── 阅读器: 全屏正文, 隐藏桌面栏 ── */
@@ -238,14 +241,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .chapter-sidebar{display:none;}
   .emotion-panel{display:none;}
   .heat-bar-wrap{display:none;}
-  .content-body{overflow-y:auto;scrollbar-width:none;}
+  .content-body{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
   .content-body::-webkit-scrollbar{display:none;}
-  .content-inner{padding:16px 18px 80px;}
-  .novel-para{font-size:16px;line-height:1.85;margin-bottom:20px;padding:0;margin-left:0;}
+  .content-inner{padding:64px 18px 80px;word-break:break-word;}
+  .novel-para{font-size:16px;line-height:1.85;margin-bottom:20px;padding:0;margin-left:0;overflow-wrap:break-word;hyphens:auto;}
   .chapter-heading{margin-bottom:20px;}
   .ch-heading-text{font-size:14px;}
   .chapter-section{margin-bottom:40px;}
   .ch-accent-bar{height:18px;}
+  /* Ensure content fits viewport */
+  .reader-body,#page-reader{width:100vw;overflow:hidden;}
+  .content-area{min-width:0;width:100%;}
 
   /* ── 移动端浮动菜单栏 ── */
   .mobile-top-bar,.mobile-bottom-bar{
