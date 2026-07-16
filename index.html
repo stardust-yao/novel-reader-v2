@@ -1402,17 +1402,18 @@ function measureChapterRanges() {
   const scrollMax = Math.max(1, body.scrollHeight - body.clientHeight);
   const marks = currentNovel.chapterMarks || [];
   if (marks.length === 0) return;
-  // Fallback: use paragraph-index progress for chapters whose DOM section is missing
+  // Always use DOM-based positions (overwrite paragraph-index values)
   for (const mark of marks) {
-    if (mark.startProgress > 0 || mark.endProgress > 0) continue; // already has DOM values
     const idx = currentNovel.chapters.findIndex(ch => ch.id === mark.chapterId);
     const sec = sections[idx];
     if (sec) {
       const top = Math.max(0, sec.offsetTop - 48);
-      mark.startProgress = top / scrollMax;
-      mark.endProgress = Math.min(1, (top + sec.offsetHeight) / scrollMax);
+      mark._scrollStart = top / scrollMax;
+      mark._scrollEnd = Math.min(1, (top + sec.offsetHeight) / scrollMax);
+    } else {
+      mark._scrollStart = mark.startProgress;
+      mark._scrollEnd = mark.endProgress;
     }
-    // if sec not found, keep paragraph-index values (already set in parseNovel)
   }
   // Sort a copy by position for overlap capping only — don't change card order
   const sorted = marks.slice().sort((a, b) => a.startProgress - b.startProgress);
@@ -1487,8 +1488,10 @@ function renderHeatPills() {
   const margin = 5 / Math.max(1, document.getElementById('heat-track').clientHeight) * 100;
   const scale = (100 - margin * 2) / 100;
   document.getElementById('heat-pills').innerHTML = marks.map((m) => {
-    const topPct = margin + m.startProgress * 100 * scale;
-    const hPct = Math.max(margin / 2, (m.endProgress - m.startProgress) * 100 * scale);
+    const sp = m._scrollStart != null ? m._scrollStart : m.startProgress;
+    const ep = m._scrollEnd != null ? m._scrollEnd : m.endProgress;
+    const topPct = margin + sp * 100 * scale;
+    const hPct = Math.max(margin / 2, (ep - sp) * 100 * scale);
     return `<button class="heat-pill" style="position:absolute;top:${topPct.toFixed(3)}%;height:${hPct.toFixed(3)}%;background:${m.color};box-shadow:0 1px 3px rgba(0,0,0,0.10);z-index:1;transform:scaleX(1)" onclick="clickChapterMark('${m.chapterId}')">
       <span class="heat-pill-label">${m.label}</span>
     </button>`;
@@ -1612,7 +1615,9 @@ function onBodyScroll() {
   const marks = currentNovel.chapterMarks || [];
   const markByChapter = Object.fromEntries(marks.map(m => [m.chapterId, m.color]));
   for (const m of marks) {
-    if (scrollProgress >= m.startProgress && scrollProgress <= m.endProgress) {
+    const start = m._scrollStart != null ? m._scrollStart : m.startProgress;
+    const end = m._scrollEnd != null ? m._scrollEnd : m.endProgress;
+    if (scrollProgress >= start && scrollProgress <= end) {
       const idx = marks.indexOf(m);
       // Highlight heat pill
       document.querySelectorAll('.heat-pill').forEach((el, i) => {
