@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #444444;
+  --muted: #f0f0f0;
+  --muted-foreground: #999999;
+  --accent: #f0f0f0;
+  --accent-foreground: #111111;
+  --border: #e8e8e8;
+  --ring: #d0d0d0;
+  --radius: 14px;
+
+  /* Emotion colors — slightly more saturated for visual clarity */
+  --emotion-green:    #96cfa0;
+  --emotion-lavender: #b8a0e0;
+  --emotion-pink:     #ebb0c8;
+  --emotion-blue:     #96aed8;
+  --emotion-amber:    #ecc888;
+  --emotion-rose:     #e098a8;
+
+  /* Surface hierarchy */
+  --surface-sidebar:  #f7f6f4;
+  --surface-content:  #faf9f7;
+  --surface-panel:    #f9f8f6;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+.novel-text {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 17px;
+  line-height: 2.0;
+  letter-spacing: 0.01em;
+  color: #1c1a18;
+}
+
+/* Floating blob animation */
+@keyframes float {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(12px, -16px) scale(1.06); }
+}
+@keyframes floatAlt {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-10px, 14px) scale(0.96); }
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+.scroll-hidden { scrollbar-width: none; }
+.scroll-hidden::-webkit-scrollbar { display: none; }
+.scroll-hidden:hover { scrollbar-width: thin; }
+.scroll-hidden:hover::-webkit-scrollbar { display: block; }

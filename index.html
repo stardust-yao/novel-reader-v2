@@ -704,7 +704,9 @@ const KNOWN_AUTHORS = {
   '垂耳执事': '麟潜',
 };
 
-// ── Community car-chapter search (Step 1 of detection pipeline) ──
+// ── Community car-chapter search ──
+// 1. Check local COMMUNITY_CAR_CHAPTERS map first
+// 2. If not found, try bobokiii.car.blog live search
 function searchCommunityCarChapters(title) {
   for (const [key, chapters] of Object.entries(COMMUNITY_CAR_CHAPTERS)) {
     if (title.includes(key) || key.includes(title)) {
@@ -712,6 +714,18 @@ function searchCommunityCarChapters(title) {
       return chapters;
     }
   }
+  return '__not_found__';
+}
+
+async function fetchBobokiii(title) {
+  try {
+    var resp = await fetch('/api/bobokiii-search?title=' + encodeURIComponent(title));
+    var data = await resp.json();
+    if (data.found && data.chapters.length > 0) {
+      console.log('[Bobokiii] found:', title, data.chapters);
+      return data.chapters;
+    }
+  } catch(e) { console.log('[Bobokiii] error:', e.message); }
   return '__not_found__';
 }
 
@@ -1266,6 +1280,35 @@ function handleFileSelect(event) {
     shareState = 'idle';
     updateShareButton();
     document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在生成章节摘要…</span></div>';
+    // Try bobokiii live search if not in local community map
+    if (!currentNovel.chapterMarks.length || (currentNovel.chapterMarks[0].description && currentNovel.chapterMarks[0].description.indexOf('📖') === -1)) {
+      var boboChapters = await fetchBobokiii(currentNovel.title);
+      if (boboChapters !== '__not_found__' && boboChapters.length) {
+        currentNovel.chapterMarks = [];
+        for (var bi = 0; bi < boboChapters.length; bi++) {
+          var num = boboChapters[bi];
+          var bch;
+          if (num >= 1000) {
+            var fwT = '番外' + ['一','二','三','四','五','六','七','八','九'][num - 1001];
+            bch = currentNovel.chapters.find(function(c) { return c.title.indexOf(fwT) !== -1; });
+          } else {
+            var chT = '第' + num + '章';
+            bch = currentNovel.chapters.find(function(c) { return c.title === chT; }) || currentNovel.chapters[num - 1];
+          }
+          if (bch && bch.paragraphs.length) {
+            var fg = bch.paragraphs[0].globalIndex;
+            var lg = bch.paragraphs[bch.paragraphs.length - 1].globalIndex;
+            currentNovel.chapterMarks.push({
+              chapterId: bch.id, chapterNum: num >= 1000 ? '番外' : num,
+              title: bch.title, startProgress: fg / currentNovel.allParagraphs.length,
+              endProgress: lg / currentNovel.allParagraphs.length,
+              description: '📖 bobokiii', label: bch.title,
+              color: ['#e8829a','#c4a0d8','#f0c87a','#96b8e8','#e09070'][currentNovel.chapterMarks.length % 5]
+            });
+          }
+        }
+      }
+    }
     await verifyCarChapters(currentNovel);
     await generateLLMSummaries(currentNovel);
     await generateRecommendation(currentNovel, currentBookId);
@@ -1307,6 +1350,35 @@ function handleFileSelect(event) {
     shareState = 'idle';
     updateShareButton();
     document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在生成章节摘要…</span></div>';
+    // Try bobokiii live search if not in local community map
+    if (!currentNovel.chapterMarks.length || (currentNovel.chapterMarks[0].description && currentNovel.chapterMarks[0].description.indexOf('📖') === -1)) {
+      var boboChapters = await fetchBobokiii(currentNovel.title);
+      if (boboChapters !== '__not_found__' && boboChapters.length) {
+        currentNovel.chapterMarks = [];
+        for (var bi = 0; bi < boboChapters.length; bi++) {
+          var num = boboChapters[bi];
+          var bch;
+          if (num >= 1000) {
+            var fwT = '番外' + ['一','二','三','四','五','六','七','八','九'][num - 1001];
+            bch = currentNovel.chapters.find(function(c) { return c.title.indexOf(fwT) !== -1; });
+          } else {
+            var chT = '第' + num + '章';
+            bch = currentNovel.chapters.find(function(c) { return c.title === chT; }) || currentNovel.chapters[num - 1];
+          }
+          if (bch && bch.paragraphs.length) {
+            var fg = bch.paragraphs[0].globalIndex;
+            var lg = bch.paragraphs[bch.paragraphs.length - 1].globalIndex;
+            currentNovel.chapterMarks.push({
+              chapterId: bch.id, chapterNum: num >= 1000 ? '番外' : num,
+              title: bch.title, startProgress: fg / currentNovel.allParagraphs.length,
+              endProgress: lg / currentNovel.allParagraphs.length,
+              description: '📖 bobokiii', label: bch.title,
+              color: ['#e8829a','#c4a0d8','#f0c87a','#96b8e8','#e09070'][currentNovel.chapterMarks.length % 5]
+            });
+          }
+        }
+      }
+    }
     await verifyCarChapters(currentNovel);
     await generateLLMSummaries(currentNovel);
     await generateRecommendation(currentNovel, currentBookId);

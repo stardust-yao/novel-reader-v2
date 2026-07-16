@@ -2,6 +2,14 @@
   command = "bash build.sh"
   publish = "."
 
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
