@@ -1496,16 +1496,20 @@ function renderHeatPills() {
 }
 
 function clickChapterMark(chapterId) {
-  const idx = currentNovel.chapters.findIndex(c => c.id === chapterId);
-  if (idx >= 0) clickChapter(idx);
-  // Scroll the corresponding emotion card into view
-  const marks = currentNovel.chapterMarks || [];
-  const markIdx = marks.findIndex(m => m.chapterId === chapterId);
-  if (markIdx >= 0) {
-    const card = document.querySelectorAll('.ep-card')[markIdx];
-    if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  var el = document.getElementById(chapterId);
+  if (el) {
+    var cb = document.getElementById('content-body');
+    var rect = el.getBoundingClientRect();
+    var cbRect = cb.getBoundingClientRect();
+    cb.scrollTop += rect.top - cbRect.top - 80;
   }
-  // Explicitly run scroll handler since programmatic scroll doesn't fire onscroll
+  var idx = currentNovel.chapters.findIndex(function(c) { return c.id === chapterId; });
+  if (idx >= 0) {
+    document.querySelectorAll('.ch-item').forEach(function(el2, i) { el2.classList.toggle('active', i === idx); });
+    var marks = currentNovel.chapterMarks || [];
+    var markIdx = marks.findIndex(function(m) { return m.chapterId === chapterId; });
+    document.querySelectorAll('.heat-pill').forEach(function(p, i) { p.classList.toggle('active', i === markIdx); });
+  }
   onBodyScroll();
 }
 
