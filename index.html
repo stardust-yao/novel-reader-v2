@@ -1611,46 +1611,45 @@ function onBodyScroll() {
   const lineTop = Math.min(97, Math.max(2, scrollProgress * 100));
   const readEl = document.getElementById('heat-read');
   if (readEl) readEl.style.top = lineTop + '%';
-  // Highlight active chapter mark based on scroll position
-  const marks = currentNovel.chapterMarks || [];
-  const markByChapter = Object.fromEntries(marks.map(m => [m.chapterId, m.color]));
-  for (const m of marks) {
-    const start = m._scrollStart != null ? m._scrollStart : m.startProgress;
-    const end = m._scrollEnd != null ? m._scrollEnd : m.endProgress;
-    if (scrollProgress >= start && scrollProgress <= end) {
-      const idx = marks.indexOf(m);
-      // Highlight heat pill
-      document.querySelectorAll('.heat-pill').forEach((el, i) => {
-        const c = marks[i].color;
-        if (i === idx) {
-          el.classList.add('active');
-          el.style.transform = 'scaleX(1.3)';
-          el.style.boxShadow = `0 2px 10px ${c}99`;
-          el.style.zIndex = '10';
-        } else {
-          el.classList.remove('active');
-          el.style.transform = 'scaleX(1)';
-          el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.10)';
-          el.style.zIndex = '1';
-        }
-      });
-      // Highlight emotion card with scale-up + border
-      document.querySelectorAll('.ep-card').forEach((el, i) => {
-        if (i === idx) {
-          el.style.transform = 'scale(1.04)';
-          el.style.boxShadow = `0 4px 16px ${hexA(marks[i].color, 0.3)}`;
-          el.style.border = `2px solid ${marks[i].color}`;
-          el.style.zIndex = '2';
-        } else {
-          el.style.transform = 'scale(1)';
+  // Highlight active chapter mark — use nearest match (not strict range)
+  var bestIdx = -1, bestDist = 1;
+  for (var mi = 0; mi < marks.length; mi++) {
+    var m = marks[mi];
+    var start = m._scrollStart != null ? m._scrollStart : m.startProgress;
+    var end = m._scrollEnd != null ? m._scrollEnd : m.endProgress;
+    var mid = (start + end) / 2;
+    var dist = Math.abs(scrollProgress - mid);
+    if (scrollProgress >= start && scrollProgress <= end) { bestIdx = mi; break; }
+    if (dist < bestDist) { bestDist = dist; bestIdx = mi; }
+  }
+  document.querySelectorAll('.heat-pill').forEach((el, i) => {
+    var c = marks[i].color;
+    if (i === bestIdx) {
+      el.classList.add('active');
+      el.style.transform = 'scaleX(1.3)';
+      el.style.boxShadow = '0 2px 10px ' + c + '99';
+      el.style.zIndex = '10';
+    } else {
+      el.classList.remove('active');
+      el.style.transform = 'scaleX(1)';
+      el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.10)';
+      el.style.zIndex = '1';
+    }
+  });
+  // Highlight emotion card with scale-up + border
+  document.querySelectorAll('.ep-card').forEach((el, i) => {
+    if (i === bestIdx) {
+      el.style.transform = 'scale(1.04)';
+      el.style.boxShadow = '0 4px 16px ' + hexA(marks[bestIdx].color, 0.3);
+      el.style.border = '2px solid ' + marks[bestIdx].color;
+      el.style.zIndex = '2';
+    } else {
+      el.style.transform = 'scale(1)';
           el.style.boxShadow = 'none';
           el.style.border = 'none';
           el.style.zIndex = '1';
         }
       });
-      break;
-    }
-  }
   // Auto-scroll sidebar to active chapter
   const sections = document.querySelectorAll('.chapter-section');
   for (let i = 0; i < sections.length; i++) {
