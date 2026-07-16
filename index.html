@@ -1188,7 +1188,11 @@ async function loadLibrary() {
       grid.innerHTML = unique.map(function(b) { return renderBookCard(b); }).join('');
     }
   } catch(e) {
-    grid.innerHTML = '<div class="error-state"><div style="font-size:40px;">⚠️</div><p>' + e.message + '</p></div>';
+    if (e.name === 'AbortError') {
+      grid.innerHTML = '<div style="text-align:center;padding:60px;color:#bbb;">网络较慢，<a href="javascript:location.reload()" style="color:#888;text-decoration:underline;">重试</a></div>';
+    } else {
+      grid.innerHTML = '<div class="error-state"><div style="font-size:40px;">⚠️</div><p>' + e.message + '</p></div>';
+    }
   }
 }
 
