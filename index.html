@@ -1612,6 +1612,7 @@ function onBodyScroll() {
   const readEl = document.getElementById('heat-read');
   if (readEl) readEl.style.top = lineTop + '%';
   // Highlight active chapter mark — use nearest match (not strict range)
+  var marks = currentNovel.chapterMarks || [];
   var bestIdx = -1, bestDist = 1;
   for (var mi = 0; mi < marks.length; mi++) {
     var m = marks[mi];
