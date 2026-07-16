@@ -706,14 +706,13 @@ const KNOWN_AUTHORS = {
 
 // ── Community car-chapter search (Step 1 of detection pipeline) ──
 function searchCommunityCarChapters(title) {
-  // Check local data map first
   for (const [key, chapters] of Object.entries(COMMUNITY_CAR_CHAPTERS)) {
     if (title.includes(key) || key.includes(title)) {
-      console.log('[Community] matched local:', key, chapters);
+      console.log('[Community] matched:', key, chapters);
       return chapters;
     }
   }
-  return null;
+  return '__not_found__';
 }
 
 function parseNovel(fullTitle, rawText) {
@@ -870,12 +869,13 @@ function parseNovel(fullTitle, rawText) {
     });
   }
 
-  // ── Step 1: Community search (bobokiii + xiaorenxing) ──
+  // ── Step 1: Community data (authoritative when present) ──
   const communityNums = searchCommunityCarChapters(title);
-  if (communityNums && communityNums.length > 0) {
-    for (const num of communityNums) {
-      let ch;
-      if (num >= 1000) {
+  if (communityNums !== '__not_found__') {
+    if (communityNums.length > 0) {
+      for (const num of communityNums) {
+        let ch;
+        if (num >= 1000) {
         // 番外: 1001 = 番外一
         const fwTitle = '番外' + ['一','二','三','四','五','六','七','八','九'][num - 1001];
         ch = chapters.find(c => c.title.includes(fwTitle));
