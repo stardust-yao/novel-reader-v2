@@ -78,6 +78,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
 .search-close-inline:hover{color:#555;}
 .lib-card-del{position:absolute;top:10px;right:10px;background:transparent;color:#ccc;border:none;font-size:16px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:all .15s;line-height:1;z-index:2;}
 .lib-card-del:hover{color:#d44;background:rgba(221,68,68,.08);}
+.lib-card-edit{position:absolute;top:10px;right:30px;background:transparent;color:#ccc;border:none;font-size:12px;cursor:pointer;padding:2px 4px;border-radius:4px;transition:all .15s;line-height:1;z-index:2;}
+.lib-card-edit:hover{color:#888;}
+.lib-card-edit-inline{background:transparent;color:#ccc;border:none;font-size:10px;cursor:pointer;padding:0 2px;}
+.lib-card-edit-inline:hover{color:#888;}
 .admin-btn{width:30px;height:30px;border-radius:8px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;transition:all .15s;}
 .admin-btn:hover{background:#f0eeea;color:#666;}
 .is-admin .admin-btn{color:#555;}
@@ -701,7 +705,7 @@ const KNOWN_AUTHORS = {
   '上心': '池总渣',
   '作践': '十步方寒',
   '好生开车': '罗再说',
-  '垂耳执事': '麟潜',
+  '交易沦陷': '在下小神j',
 };
 
 // ── Community car-chapter search (Step 1 of detection pipeline) ──
@@ -1107,15 +1111,25 @@ function timeAgo(dateStr) {
 function renderBookCard(b) {
   var markCount = (b.chapter_marks && b.chapter_marks.length) || 0;
   return '<div class="lib-card" onclick="readBook(\'' + b.id + '\',\'' + b.title.replace(/'/g, '&#39;') + '\',' + b.chapter_count + ',' + b.moment_count + ')">' +
-    (isAdmin ? '<button class="lib-card-del" onclick="event.stopPropagation();deleteBook(\'' + b.id + '\',\'' + b.title.replace(/'/g, '&#39;') + '\')">×</button>' : '') +
+    (isAdmin ? '<button class="lib-card-del" onclick="event.stopPropagation();deleteBook(\'' + b.id + '\',\'' + b.title.replace(/'/g, '&#39;') + '\')">×</button><button class="lib-card-edit" onclick="event.stopPropagation();editBookMeta(\'' + b.id + '\',\'title\',\'' + b.title.replace(/'/g, '&#39;') + '\')" title="编辑书名">✎</button>' : '') +
     '<div class="lib-card-title">' + b.title + '</div>' +
-    (b.author ? '<div class="lib-card-author">' + b.author + '</div>' : '') +
+    (b.author ? '<div class="lib-card-author">' + b.author + (isAdmin ? ' <button class="lib-card-edit-inline" onclick="event.stopPropagation();editBookMeta(\'' + b.id + '\',\'author\',\'' + b.author.replace(/'/g, '&#39;') + '\')" title="编辑作者">✎</button>' : '') + '</div>' : (isAdmin ? '<div class="lib-card-author"><button class="lib-card-edit-inline" onclick="event.stopPropagation();editBookMeta(\'' + b.id + '\',\'author\',\'\')" title="添加作者">+ 作者</button></div>' : '')) +
     (b.recommendation ? '<div class="lib-rec' + (isAdmin ? ' lib-rec-edit' : '') + '"' + (isAdmin ? ' onclick="event.stopPropagation();editRecommendation(\'' + b.id + '\')"' : '') + '>' + b.recommendation + (isAdmin ? '&nbsp;<span class="lib-rec-edit-btn" onclick="event.stopPropagation();editRecommendation(\'' + b.id + '\')">✎</span>' : '') + '</div>' : (isAdmin ? '<div class="lib-rec lib-rec-empty" onclick="event.stopPropagation();editRecommendation(\'' + b.id + '\')">+ 人设</div>' : '')) +
     '<div class="lib-card-footer"><span class="lib-card-meta"><span>' + b.chapter_count + ' 章</span>' +
     (markCount ? '<span>·</span><span class="lib-badge"><span class="lib-badge-num">' + markCount + '</span>🚗</span>' : '') +
     '</span>' +
     '<button class="lib-card-read" onclick="event.stopPropagation();readBook(\'' + b.id + '\',\'' + b.title.replace(/'/g, '&#39;') + '\',' + b.chapter_count + ',' + b.moment_count + ')">开始阅读</button>' +
     '</div></div>';
+}
+
+function editBookMeta(id, field, currentVal) {
+  var newVal = prompt('编辑' + (field === 'title' ? '书名' : '作者') + '：', currentVal);
+  if (newVal === null || newVal === currentVal) return;
+  supabaseFetch('/books?id=eq.' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY },
+    body: JSON.stringify({ [field]: newVal }),
+  }).then(function() { loadLibrary(); }).catch(function(e) { alert('修改失败: ' + e.message); });
 }
 
 function toggleSearch() {
