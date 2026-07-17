@@ -296,7 +296,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
   .mobile-sheet-title{font-size:15px;font-weight:600;color:#333;}
   .mobile-sheet-close{font-size:22px;color:#999;background:none;border:none;cursor:pointer;padding:8px;line-height:1;transition:opacity .15s;}
   .mobile-sheet-close:active{opacity:.5;}
-  .mobile-sheet-body{flex:1;overflow-y:auto;padding:8px 0;}
+  .mobile-sheet-body{flex:1;overflow-y:auto;padding:8px 0 70px;}
   /* TOC items in sheet */
   .mobile-toc-item{display:flex;align-items:center;padding:12px 20px;font-size:14px;color:#333;border:none;background:none;width:100%;text-align:left;cursor:pointer;gap:8px;transition:background .15s;}
   .mobile-toc-item:hover{background:#f8f6f2;}
@@ -1759,7 +1759,7 @@ function togglePanel() {
     if (btn) btn.classList.add('active');
     // Hide top bar, show sheet
     document.getElementById('mobile-top-bar').classList.add('mobile-hidden');
-    document.getElementById('mobile-bottom-bar').classList.remove('mobile-bottom-hidden');
+    document.getElementById('mobile-bottom-bar').classList.add('mobile-bottom-hidden');
     if (type === 'toc') {
       renderMobileTOC();
       document.getElementById('mobile-toc-sheet').classList.add('open');
