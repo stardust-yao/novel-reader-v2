@@ -160,7 +160,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--background);color
 .novel-para.active{padding-left:18px;}
 /* 热力进度条 */
 .heat-bar-wrap{position:absolute;right:6px;top:18px;bottom:18px;width:28px;display:flex;flex-direction:column;pointer-events:none;z-index:5;}
-.heat-track{position:relative;flex:1;border-radius:16px;background:#ede9e2;box-shadow:inset 0 1px 4px rgba(0,0,0,.07);overflow:hidden;}
+.heat-track{position:relative;flex:1;border-radius:16px;background:#ede9e2;box-shadow:inset 0 1px 4px rgba(0,0,0,.07);overflow:visible;pointer-events:auto;}
 .heat-pill{position:absolute;left:5px;right:5px;border-radius:50px;cursor:pointer;pointer-events:auto;transition:all .25s;overflow:visible;border:none;}
 .heat-pill:hover{transform:scaleX(1.15);}
 .heat-pill.active{transform:scaleX(1.3);z-index:10;}
@@ -560,11 +560,14 @@ function isChapterTitle(line) {
   // Bare numeric chapters: "1.", "1、", or standalone "1"
   if (/^\d{1,3}$/.test(t)) { const n = parseInt(t); if (n >= 1 && n <= 300) return true; }
   if (/^\d+[\.、]/.test(t)) {
-  if (t.length > 18) return false;
-  if (/[?？]/.test(t)) return false;
-  if (/[，。！：""'']/.test(t)) return false;
-  if (/^\d+\.\d+\.\d+$/.test(t)) return false;  // date like "7.3.1974"
-  return true;
+    const afterNum = t.replace(/^\d+[\.、]\s*/, '');
+    if (t.length > 18) return false;
+    if (/[?？]/.test(t)) return false;
+    if (/[，。！：""'']/.test(t)) return false;
+    if (/^\d+\.\d+\.\d+$/.test(t)) return false;  // date like "7.3.1974"
+    if (/[（(]/.test(afterNum)) return false;  // parenthetical commentary → body text
+    if (/^(没有|不是|不会|不能|不要|别)/.test(afterNum)) return false;  // negation starters → body text
+    return true;
   }
   return false;
 }
@@ -1216,6 +1219,7 @@ async function loadLibrary() {
 // 从书城读取书籍 (拉取 file_content → parseNovel → 进入阅读器)
 // ══════════════════════════════════════════════════════════════
 async function readBook(bookId, title, chapterCount, momentCount) {
+  currentNovel = null;  // clear stale content before switching page
   switchPage('reader');
   document.getElementById('reader-title-text').textContent = title;
   document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在加载书籍内容…</span></div>';
@@ -1253,6 +1257,7 @@ async function readBook(bookId, title, chapterCount, momentCount) {
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
+  currentNovel = null;  // clear stale content before switching page
   switchPage('reader');
   document.getElementById('reader-title-text').textContent = file.name.replace(/\.txt$/i, '');
   document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在读取文件…</span></div>';
@@ -1263,15 +1268,36 @@ function handleFileSelect(event) {
   reader.onload = async function(e) {
     try {
     const buffer = e.target.result;
-    let text;
     const dv = new DataView(buffer);
-    if (buffer.byteLength >= 2 && dv.getUint8(0) === 0xFF && dv.getUint8(1) === 0xFE) {
+    const b0 = dv.getUint8(0), b1 = buffer.byteLength >= 2 ? dv.getUint8(1) : 0;
+    let text;
+    // 1. BOM-prefixed UTF-16
+    if (b0 === 0xFF && b1 === 0xFE) {
       text = new TextDecoder('utf-16le').decode(buffer);
+    } else if (b0 === 0xFE && b1 === 0xFF) {
+      text = new TextDecoder('utf-16be').decode(buffer);
     } else {
-      text = new TextDecoder('utf-8').decode(buffer);
-      if (text.includes('\ufffd')) {
-        try { text = new TextDecoder('gbk').decode(buffer); } catch { /* keep utf-8 */ }
+      // 2. No BOM — try common CJK encodings, score by common-character frequency
+      const encodings = ['utf-8', 'gbk', 'gb18030', 'big5'];
+      // Top-200 most frequent Chinese chars (by corpus frequency)
+      const COMMON = '的一是不了在有人我他这中大来上们到说个子时出会也地对生要下过天能为就以学年可她都和自得那你里开后事多心用家样小经去道想前所从日然方成法之如发看体当没头好理通高进其力明实问本行现公等长民部水机十外三二正相百关各全手新者利度门文点情定平面但制代重性气只提题展与路花被己产把将及山应总量些意建话回员品处农林给几少内又政法很入神社工第向口名利军动门';
+      const commonSet = new Set(COMMON);
+      function chScore(s) {
+        let n = 0;
+        for (let i = 0; i < Math.min(s.length, 6000); i++) {
+          if (commonSet.has(s[i])) n++;
+        }
+        return n;
       }
+      let best = '', bestScore = 0;
+      for (const enc of encodings) {
+        try {
+          const t = new TextDecoder(enc).decode(buffer);
+          const s = chScore(t);
+          if (s > bestScore) { best = t; bestScore = s; }
+        } catch {}
+      }
+      text = best;
     }
     document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在解析章节…</span></div>';
     const title = file.name.replace(/\.txt$/i, '');
@@ -1294,6 +1320,7 @@ function handleFileSelect(event) {
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
+  currentNovel = null;  // clear stale content before switching page
   switchPage('reader');
   document.getElementById('reader-title-text').textContent = file.name.replace(/\.txt$/i, '');
   document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在读取文件…</span></div>';
@@ -1304,15 +1331,36 @@ function handleFileSelect(event) {
   reader.onload = async function(e) {
     try {
     const buffer = e.target.result;
-    let text;
     const dv = new DataView(buffer);
-    if (buffer.byteLength >= 2 && dv.getUint8(0) === 0xFF && dv.getUint8(1) === 0xFE) {
+    const b0 = dv.getUint8(0), b1 = buffer.byteLength >= 2 ? dv.getUint8(1) : 0;
+    let text;
+    // 1. BOM-prefixed UTF-16
+    if (b0 === 0xFF && b1 === 0xFE) {
       text = new TextDecoder('utf-16le').decode(buffer);
+    } else if (b0 === 0xFE && b1 === 0xFF) {
+      text = new TextDecoder('utf-16be').decode(buffer);
     } else {
-      text = new TextDecoder('utf-8').decode(buffer);
-      if (text.includes('\ufffd')) {
-        try { text = new TextDecoder('gbk').decode(buffer); } catch { /* keep utf-8 */ }
+      // 2. No BOM — try common CJK encodings, score by common-character frequency
+      const encodings = ['utf-8', 'gbk', 'gb18030', 'big5'];
+      // Top-200 most frequent Chinese chars (by corpus frequency)
+      const COMMON = '的一是不了在有人我他这中大来上们到说个子时出会也地对生要下过天能为就以学年可她都和自得那你里开后事多心用家样小经去道想前所从日然方成法之如发看体当没头好理通高进其力明实问本行现公等长民部水机十外三二正相百关各全手新者利度门文点情定平面但制代重性气只提题展与路花被己产把将及山应总量些意建话回员品处农林给几少内又政法很入神社工第向口名利军动门';
+      const commonSet = new Set(COMMON);
+      function chScore(s) {
+        let n = 0;
+        for (let i = 0; i < Math.min(s.length, 6000); i++) {
+          if (commonSet.has(s[i])) n++;
+        }
+        return n;
       }
+      let best = '', bestScore = 0;
+      for (const enc of encodings) {
+        try {
+          const t = new TextDecoder(enc).decode(buffer);
+          const s = chScore(t);
+          if (s > bestScore) { best = t; bestScore = s; }
+        } catch {}
+      }
+      text = best;
     }
     document.getElementById('content-inner').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span style="color:#bbb;font-size:13px;">正在解析章节…</span></div>';
     const title = file.name.replace(/\.txt$/i, '');
@@ -1501,7 +1549,9 @@ function renderHeatPills() {
   // Compress range to leave 5px-equivalent margin at top/bottom (matching pill left/right gap)
   const margin = 5 / Math.max(1, document.getElementById('heat-track').clientHeight) * 100;
   const scale = (100 - margin * 2) / 100;
-  document.getElementById('heat-pills').innerHTML = marks.map((m) => {
+  const hp = document.getElementById('heat-pills');
+  hp.style.pointerEvents = 'auto';  // ensure buttons receive mouse events
+  hp.innerHTML = marks.map((m) => {
     const sp = m._scrollStart != null ? m._scrollStart : m.startProgress;
     const ep = m._scrollEnd != null ? m._scrollEnd : m.endProgress;
     const topPct = margin + sp * 100 * scale;
@@ -1749,17 +1799,25 @@ function togglePanel() {
     }
   };
   window.openMobileSheet = function(type) {
-    // Close other sheet first
+    var sheetId = type === 'toc' ? 'mobile-toc-sheet' : 'mobile-ep-sheet';
     var other = type === 'toc' ? 'emotions' : 'toc';
     var otherSheet = document.getElementById(other === 'toc' ? 'mobile-toc-sheet' : 'mobile-ep-sheet');
-    if (otherSheet.classList.contains('open')) { otherSheet.classList.remove('open'); }
+    var sheet = document.getElementById(sheetId);
+    // Toggle: close if already open
+    if (sheet.classList.contains('open')) {
+      sheet.classList.remove('open');
+      document.querySelectorAll('.mobile-bottom-btn').forEach(function(b){ b.classList.remove('active'); });
+      return;
+    }
+    // Close other sheet
+    if (otherSheet.classList.contains('open')) otherSheet.classList.remove('open');
     // Highlight active button, dim other
     document.querySelectorAll('.mobile-bottom-btn').forEach(function(b){ b.classList.remove('active'); });
     var btn = document.querySelector('.mobile-bottom-btn[onclick*=\"' + type + '\"]');
     if (btn) btn.classList.add('active');
     // Hide top bar, show sheet
     document.getElementById('mobile-top-bar').classList.add('mobile-hidden');
-    document.getElementById('mobile-bottom-bar').classList.add('mobile-bottom-hidden');
+    document.getElementById('mobile-bottom-bar').classList.remove('mobile-bottom-hidden');
     if (type === 'toc') {
       renderMobileTOC();
       document.getElementById('mobile-toc-sheet').classList.add('open');
